@@ -10,7 +10,7 @@ then it's so short and simple that it can be ported in 10 minutes.
 
 ## Prerequesites
 
-- [bbswitch](https://github.com/Bumblebee-Project/bbswitch)
+- [bbswitch](https://github.com/Bumblebee-Project/bbswitch) (to disable dgpu)
 - [nvidia drivers](https://rpmfusion.org/Howto/NVIDIA)
 - [rustup](https://rustup.rs/) (only to install with cargo)
 
