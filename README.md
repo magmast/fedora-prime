@@ -5,10 +5,14 @@ between igpu and dgpu. It does that by adding or removing xorg config
 (/etc/X11/xorg.conf.d/10-fedora-prime.conf) and modprobe file
 (/etc/modprobe.d/fedora-prime.conf).
 
+This script is so simple that it should work on any distro, but if it isn't, 
+then it's so short and simple that it can be ported in 10 minutes.
+
 ## Prerequesites
 
-If you don't want to disable dgpu when not using it, there are no prerequesites.
-But you propably want and in this case you need to have bbswitch installed.
+- [bbswitch](https://github.com/Bumblebee-Project/bbswitch)
+- [nvidia drivers](https://rpmfusion.org/Howto/NVIDIA)
+- [rustup](https://rustup.rs/) (only to install with cargo)
 
 ## Installation
 
@@ -17,6 +21,8 @@ cargo install fedora-prime
 ```
 
 ## Usage
+
+To change between cards run:
 
 ```sh
 fedora-prime [intel/nvidia]
@@ -28,6 +34,10 @@ If you switch to intel, disable dgpu with:
 sudo modprobe bbswitch
 sudo tee /proc/acpi/bbswitch <<<OFF
 ```
+
+This step will be done automatically, but I want to do that without complicating
+code to much (for example adding systemd service), so I need to think how to do
+it.
 
 ## License
 
