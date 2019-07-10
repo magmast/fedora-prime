@@ -2,6 +2,7 @@ use std::env;
 use std::error;
 use std::fmt::{self, Display, Formatter};
 use std::fs;
+use std::io;
 use std::process;
 use std::str::FromStr;
 
@@ -59,13 +60,17 @@ fn set_mode(mode: Mode) {
 
         Mode::Nvidia => {
             if let Err(err) = fs::remove_file(MODPROBE_CONFIG_PATH) {
-                eprintln!("can't remove modprobe config: {}", err);
-                process::exit(1);
+                if err.kind() != io::ErrorKind::NotFound {
+                    eprintln!("can't remove modprobe config: {}", err);
+                    process::exit(1);
+                }
             }
 
             if let Err(err) = fs::remove_file(MODPROBE_CONFIG_PATH) {
-                eprintln!("can't remove xorg config: {}", err);
-                process::exit(1);
+                if err.kind() != io::ErrorKind::NotFound {
+                    eprintln!("can't remove xorg config: {}", err);
+                    process::exit(1);
+                }
             }
         }
     }
