@@ -16,23 +16,32 @@ then it's so short and simple that it can be ported in 10 minutes.
 
 ## Installation
 
+First you need to install rust toolchain:
+
+```
+rustup default stable
+```
+
+Now you can install the program:
+
 ```
 cargo install fedora-prime
 ```
+
+Make sure to have `$HOME/.cargo/bin` in your `$PATH`.
 
 ## Usage
 
 To change between cards run:
 
 ```sh
-fedora-prime [intel/nvidia]
+sudo fedora-prime switch [intel/nvidia]
 ```
 
 If you switch to intel, disable dgpu with:
 
 ```sh
-sudo modprobe bbswitch
-sudo tee /proc/acpi/bbswitch <<<OFF
+sudo fedora-prime disable-gpu
 ```
 
 This step will be done automatically, but I want to do that without complicating

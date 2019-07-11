@@ -1,10 +1,14 @@
-use std::env;
+extern crate structopt;
+
 use std::error;
 use std::fmt::{self, Display, Formatter};
 use std::fs;
 use std::io;
-use std::process;
+use std::path::Path;
+use std::process::{self, Command};
 use std::str::FromStr;
+
+use structopt::StructOpt;
 
 const XORG_CONFIG_PATH: &str = "/etc/X11/xorg.conf.d/10-fedora-prime.conf";
 const XORG_CONFIG_INTEL: &str = include_str!("../assets/xorg.conf");
@@ -12,73 +16,97 @@ const XORG_CONFIG_INTEL: &str = include_str!("../assets/xorg.conf");
 const MODPROBE_CONFIG_PATH: &str = "/etc/modprobe.d/fedora-prime.conf";
 const MODPROBE_CONFIG: &str = include_str!("../assets/modprobe.conf");
 
+const MODULES_LOAD_CONFIG_PATH: &str = "/etc/modules-load.d/fedora-prime.conf";
+const MODULES_LOAD_CONFIG: &str = include_str!("../assets/modules-load.conf");
+
+const DISABLE_GPU_SCRIPT: &str = include_str!("../assets/disable-gpu.sh");
+
 const MODE_VAR_PATH: &str = "/var/lib/fedora-prime.conf";
 
 fn main() {
-    match env::args().nth(1) {
-        None => print_mode(),
-
-        Some(mode) => {
-            match mode.parse() {
-                Ok(mode) => set_mode(mode),
-
-                Err(err) => {
-                    eprintln!("{}", err);
-                    process::exit(1);
-                }
+    let opts = Options::from_args();
+    match opts.command {
+        Subcommand::Switch { mode, .. } => {
+            if let Err(err) = switch(mode) {
+                eprintln!("can't switch mode: {}", err);
+                process::exit(1);
             }
         }
-    };
-}
 
-fn print_mode() {
-    let mode = match fs::read_to_string(MODE_VAR_PATH) {
-        Ok(contents) => contents,
-
-        Err(err) => {
-            eprintln!("can't read mode: {}", err);
-            process::exit(1);
+        Subcommand::PrintMode => {
+            let mode = fs::read_to_string(MODE_VAR_PATH).unwrap_or_default();
+            println!("{}", mode);
         }
-    };
 
-    println!("{}", mode);
+        Subcommand::DisableGpu => {
+            if let Err(err) = fs::write("disable-gpu.sh", DISABLE_GPU_SCRIPT) {
+                eprintln!("can't create script: {}", err);
+                process::exit(1);
+            }
+
+            if let Err(err) = Command::new("sh").arg("disable-gpu.sh").spawn() {
+                eprintln!("can't run script: {}", err);
+                process::exit(1);
+            }
+
+            if let Err(err) = remove_if_exists("disable-gpu.sh") {
+                eprintln!("can't remove script: {}", err);
+                process::exit(1);
+            }
+        }
+    }
 }
 
-fn set_mode(mode: Mode) {
+fn switch(mode: Mode) -> io::Result<()> {
     match mode {
         Mode::Intel => {
-            if let Err(err) = fs::write(MODPROBE_CONFIG_PATH, MODPROBE_CONFIG) {
-                eprintln!("can't write modprobe config: {}", err);
-                process::exit(1);
-            }
-
-            if let Err(err) = fs::write(XORG_CONFIG_PATH, XORG_CONFIG_INTEL) {
-                eprintln!("can't write xorg config: {}", err);
-                process::exit(1);
-            }
+            fs::write(MODPROBE_CONFIG_PATH, MODPROBE_CONFIG)?;
+            fs::write(XORG_CONFIG_PATH, XORG_CONFIG_INTEL)?;
+            fs::write(MODULES_LOAD_CONFIG_PATH, MODULES_LOAD_CONFIG)?;
         }
 
         Mode::Nvidia => {
-            if let Err(err) = fs::remove_file(MODPROBE_CONFIG_PATH) {
-                if err.kind() != io::ErrorKind::NotFound {
-                    eprintln!("can't remove modprobe config: {}", err);
-                    process::exit(1);
-                }
-            }
-
-            if let Err(err) = fs::remove_file(MODPROBE_CONFIG_PATH) {
-                if err.kind() != io::ErrorKind::NotFound {
-                    eprintln!("can't remove xorg config: {}", err);
-                    process::exit(1);
-                }
-            }
+            remove_if_exists(MODPROBE_CONFIG_PATH)?;
+            remove_if_exists(MODPROBE_CONFIG_PATH)?;
+            remove_if_exists(MODULES_LOAD_CONFIG_PATH)?;
         }
     }
 
-    if let Err(err) = fs::write(MODE_VAR_PATH, mode.to_string()) {
-        eprintln!("can't write mode variable: {}", err);
-        process::exit(1);
+    fs::write(MODE_VAR_PATH, mode.to_string())
+}
+
+fn remove_if_exists<P: AsRef<Path>>(path: P) -> io::Result<()> {
+    if let Err(err) = fs::remove_file(path) {
+        if err.kind() != io::ErrorKind::NotFound {
+            Err(err)
+        } else {
+            Ok(())
+        }
+    } else {
+        Ok(())
     }
+}
+
+#[derive(StructOpt, Debug)]
+#[structopt(name = "fedora-prime")]
+struct Options {
+    #[structopt(subcommand)]
+    command: Subcommand,
+}
+
+#[derive(StructOpt, Debug)]
+enum Subcommand {
+    #[structopt(name = "switch")]
+    Switch {
+        #[structopt()]
+        mode: Mode,
+    },
+
+    #[structopt(name = "print-mode")]
+    PrintMode,
+
+    #[structopt(name = "disable-gpu")]
+    DisableGpu,
 }
 
 #[derive(Debug)]
@@ -96,7 +124,7 @@ impl Display for Error {
 
 impl error::Error for Error {}
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 enum Mode {
     Intel,
     Nvidia,
