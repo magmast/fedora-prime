@@ -20,14 +20,13 @@ use crate::mode::Mode;
 use crate::options::Options;
 
 const XORG_CONFIG_PATH: &str = "/etc/X11/xorg.conf.d/10-fedora-prime.conf";
-const XORG_CONFIG_INTEL: &str = include_str!("../assets/xorg.conf");
 const MODPROBE_CONFIG_PATH: &str = "/etc/modprobe.d/fedora-prime.conf";
 const MODPROBE_CONFIG: &str = include_str!("../assets/modprobe.conf");
 const MODULES_LOAD_CONFIG_PATH: &str = "/etc/modules-load.d/fedora-prime.conf";
 const MODULES_LOAD_CONFIG: &str = include_str!("../assets/modules-load.conf");
 const DISABLE_GPU_SCRIPT: &str = include_str!("../assets/disable-gpu.sh");
 const MODE_VAR_PATH: &str = "/var/lib/fedora-prime.conf";
-const CONFIG_PATH: &str = "/etc/fedora-prime.conf";
+const CONFIG_PATH: &str = "/etc/fedora-prime.toml";
 
 fn main() {
     match run() {
@@ -42,7 +41,7 @@ fn run() -> Result<(), RunError> {
 
     match options.command {
         options::Command::Switch { mode, .. } => 
-            switch(mode).map_err(|err| err.into()),
+            switch(mode, config).map_err(|err| err.into()),
 
         options::Command::PrintMode =>
             print_mode().map_err(|err| err.into()),
@@ -52,11 +51,21 @@ fn run() -> Result<(), RunError> {
     }
 }
 
-fn switch(mode: Mode) -> Result<(), SwitchError> {
+fn switch(mode: Mode, config: Config) -> Result<(), SwitchError> {
     match mode {
         Mode::Intel => {
             fs::write(MODPROBE_CONFIG_PATH, MODPROBE_CONFIG)?;
-            fs::write(XORG_CONFIG_PATH, XORG_CONFIG_INTEL)?;
+
+            let xorg_config = format!(
+                include_str!("../assets/xorg.conf"),
+                bus_id = config.intel().bus_id(),
+                accel_method = config.intel().accel_method(),
+                dri = config.intel().dri(),
+                driver = config.intel().driver(),
+            );
+
+            fs::write(XORG_CONFIG_PATH, xorg_config)?;
+            
             fs::write(MODULES_LOAD_CONFIG_PATH, MODULES_LOAD_CONFIG)?;
         }
 
@@ -85,6 +94,7 @@ fn print_mode() -> Result<(), PrintModeError> {
     Ok(())
 }
 
+// TODO: Bad solution, think of a better one
 fn disable_gpu() -> Result<(), DisableGpuError> {
     fs::write("disable-gpu.sh", DISABLE_GPU_SCRIPT)?;
     process::Command::new("sh").arg("disable-gpu.sh").spawn()?;

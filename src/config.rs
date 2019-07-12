@@ -24,11 +24,46 @@ impl Config {
             Ok(Default::default())
         }
     }
+
+    pub fn intel(&self) -> Intel {
+        self.intel.as_ref().map(|intel| intel.clone()).unwrap_or_default()
+    }
 }
 
-#[derive(Deserialize, Default)]
+#[derive(Deserialize, Default, Clone)]
 pub struct Intel {
     driver: Option<String>,
+    dri: Option<String>,
     bus_id: Option<String>,
     accel_method: Option<String>,
+}
+
+impl Intel {
+    pub fn driver(&self) -> String {
+        self.driver
+            .as_ref()
+            .map(|driver| driver.clone())
+            .unwrap_or("modesetting".into())
+    }
+
+    pub fn dri(&self) -> String {
+        self.dri
+            .as_ref()
+            .map(|dri| dri.clone())
+            .unwrap_or("3".into())
+    }
+
+    pub fn bus_id(&self) -> String {
+        self.bus_id
+            .as_ref()
+            .map(|bus_id| bus_id.clone())
+            .unwrap_or("PCI:0:0:0".into())
+    }
+
+    pub fn accel_method(&self) -> String {
+        self.accel_method
+            .as_ref()
+            .map(|accel_method| accel_method.clone())
+            .unwrap_or("sna".into())
+    }
 }

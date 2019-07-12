@@ -48,6 +48,11 @@ This step will be done automatically, but I want to do that without complicating
 code to much (for example adding systemd service), so I need to think how to do
 it.
 
+## Configuration
+
+Configuration file is `/etc/fedora-prime.toml`. Check 
+[config.example.toml](config.example.toml) to see example configuration.
+
 ## License
 
 This project is licensed under MIT License. See [LICENSE](LICENSE) file for
