@@ -1,5 +1,7 @@
 [package]
 name = "fedora-prime"
+description = "Simple program to switch between igpu and dgpu"
+license = "MIT"
 version = "0.1.0"
 authors = ["maciej"]
 edition = "2018"
