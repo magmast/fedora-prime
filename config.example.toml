@@ -1,9 +1,0 @@
-# All possible options are in this configuration file. If there is no option
-# you need, create an issue and I'll try to add it :)
-
-# Sections with settings related to intel gpu
-[intel]
-driver = "intel"
-dri = "3"
-bus_id = "PCI:0:2:0"
-accel_method = "sna"
