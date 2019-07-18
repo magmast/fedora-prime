@@ -1,57 +1,73 @@
 # Fedora prime
+> Switching between intel/nvidia drivers made simple.
 
-Simple program written in rust which manages xorg and modprobe config to switch
-between igpu and dgpu. It does that by adding or removing xorg config
-(/etc/X11/xorg.conf.d/10-fedora-prime.conf) and modprobe file
-(/etc/modprobe.d/fedora-prime.conf).
+Fedora prime is a program that allows you to switch between intel/nvidia drivers
+in simple way. When you're switching to intel, it blacklists all nvidia modules
+and sets nouveau options to run intel gpu and disable nvidia gpu. Whe you switch
+to nvidia, it does the opposite.
 
-This script is so simple that it should work on any distro, but if it isn't, 
-then it's so short and simple that it can be ported in 10 minutes.
+The only thing that it touches is `/etc/modprobe.d/fedora-prime.conf` and
+`/var/lib/fedora-prime/mode`. In the first file is done all the switching and
+the second one contains info about current mode.
 
-## Prerequesites
+## Getting started
 
-- [bbswitch](https://github.com/Bumblebee-Project/bbswitch) (to disable dgpu)
-- [nvidia drivers](https://rpmfusion.org/Howto/NVIDIA)
+### Prerequesites
+
+- [RPM Fusion nvidia drivers](https://rpmfusion.org/Howto/NVIDIA) or
+  [negativo17 nvidia drivers](https://negativo17.org/nvidia-driver)
 - [rustup](https://rustup.rs/) (only to install with cargo)
 
-## Installation
+### Installation
 
-First you need to install rust toolchain:
+Fedora prime isn't yet available as rpm package (but it will), so you need to
+build it from source. Don't worry it's very simple :)
 
+First you'll need to install rustup:
+
+```sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
+
+Install rust toolchain and set is as default:
+
+```sh
 rustup default stable
 ```
 
-Now you can install the program:
+Add `$HOME/.cargo/bin` to your path.
 
+```sh
+echo 'export PATH="$PATH:$HOME/.cargo/bin"' >> ~/.bash_profile
 ```
+
+Install fedora prime:
+
+```sh
 cargo install fedora-prime
 ```
 
-Make sure to have `$HOME/.cargo/bin` in your `$PATH`.
+### Usage
 
-## Usage
-
-To change between cards run:
+To use intel run:
 
 ```sh
-sudo fedora-prime switch [intel/nvidia]
+fedora-prime intel
 ```
 
-If you switch to intel, disable dgpu with:
+To use nvidia run:
 
 ```sh
-sudo fedora-prime disable-gpu
+fedora-prime nvidia
 ```
 
-This step will be done automatically, but I want to do that without complicating
-code to much (for example adding systemd service), so I need to think how to do
-it.
+After switching you must reboot.
 
-## Configuration
+To check if it's working run:
 
-Configuration file is `/etc/fedora-prime.toml`. Check 
-[config.example.toml](config.example.toml) to see example configuration.
+```sh
+glxinfo | grep 'OpenGL renderer'
+```
 
 ## License
 
