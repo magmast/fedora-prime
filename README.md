@@ -16,42 +16,13 @@ the second one contains info about current mode.
 
 - [RPM Fusion nvidia drivers](https://rpmfusion.org/Howto/NVIDIA) or
   [negativo17 nvidia drivers](https://negativo17.org/nvidia-driver)
-- [rustup](https://rustup.rs/) (only to install with cargo)
 
 ### Installation
 
-Fedora prime isn't yet available as rpm package (but it will), so you need to
-build it from source. Don't worry it's very simple :)
-
-First you'll need to install rustup:
-
-```sh
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-
-Install rust toolchain and set it as default:
-
-```sh
-rustup default stable
-```
-
-Add `$HOME/.cargo/bin` to your path.
-
-```sh
-echo 'export PATH="$PATH:$HOME/.cargo/bin"' >> ~/.bash_profile
-```
-
-Install fedora prime:
-
-```sh
-cargo install fedora-prime
-```
-
-Now move executable to `/usr/bin` so it'i accesible by root:
-
-```sh
-sudo mv ~/.cargo/bin/fedora-prime /usr/bin/
-```
+I'm experimenting with copr repos, but I think I'm to stupid to make it work :(
+If you want to help me check [this issue](https://github.com/magmast/fedora-prime/issues/1).
+For now you can compile it from source or get `.rpm` package from
+[releases](https://github.com/magmast/fedora-prime/releases).
 
 ### Usage
 
@@ -81,6 +52,14 @@ Just remove the binary from `/usr/bin` and `/etc/modprobe.d/fedora-prime.conf`:
 
 ```sh
 sudo rm /etc/modprobe.d/fedora-prime.conf /usr/bin/fedora-prime
+```
+
+### Building from source
+
+Cd into directory containing project and run:
+
+```sh
+cargo build
 ```
 
 ## License
