@@ -29,7 +29,7 @@ First you'll need to install rustup:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-Install rust toolchain and set is as default:
+Install rust toolchain and set it as default:
 
 ```sh
 rustup default stable
@@ -47,18 +47,24 @@ Install fedora prime:
 cargo install fedora-prime
 ```
 
+Now move executable to `/usr/bin` so it'i accesible by root:
+
+```sh
+sudo mv ~/.cargo/bin/fedora-prime /usr/bin/
+```
+
 ### Usage
 
 To use intel run:
 
 ```sh
-fedora-prime intel
+sudo fedora-prime intel
 ```
 
 To use nvidia run:
 
 ```sh
-fedora-prime nvidia
+sudo fedora-prime nvidia
 ```
 
 After switching you must reboot.
@@ -67,6 +73,14 @@ To check if it's working run:
 
 ```sh
 glxinfo | grep 'OpenGL renderer'
+```
+
+### Uninstallation
+
+Just remove the binary from `/usr/bin` and `/etc/modprobe.d/fedora-prime.conf`:
+
+```sh
+sudo rm /etc/modprobe.d/fedora-prime.conf /usr/bin/fedora-prime
 ```
 
 ## License
