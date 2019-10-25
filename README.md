@@ -1,14 +1,16 @@
 # Fedora prime
 > Switching between intel/nvidia drivers made simple.
 
-Fedora prime is a program that allows you to switch between intel/nvidia drivers
-in simple way. When you're switching to intel, it blacklists all nvidia modules
-and sets nouveau options to run intel gpu and disable nvidia gpu. Whe you switch
-to nvidia, it does the opposite.
+This repository contains just two scripts `setup-intel.sh` and `setup-nvidia.sh`.
+Those scripts are modifying kernel parameters to enable/disable nouveau and nvidia
+drivers. Doing so should switch which gpu is used.
 
-The only thing that it touches is `/etc/modprobe.d/fedora-prime.conf` and
-`/var/lib/fedora-prime/mode`. In the first file is done all the switching and
-the second one contains info about current mode.
+While nouveau driver is loaded, it should disable discrete gpu. But there is a
+chance that it will not. Unfortunately it doesn't on my laptop, so I decided
+to change my linux distro. This means that I'll no longer actively maintain
+fedora-prime, but I'll still accept pull requests or maybe even work on some
+issues. But still, I encourage you to try fedora-prime. If it will not work for
+you, try to use `0.1.1` version (see releases or tags).
 
 ## Getting started
 
@@ -19,26 +21,24 @@ the second one contains info about current mode.
 
 ### Installation
 
-I'm experimenting with copr repos, but I think I'm to stupid to make it work :(
-If you want to help me check [this issue](https://github.com/magmast/fedora-prime/issues/1).
-For now you can compile it from source or get `.rpm` package from
-[releases](https://github.com/magmast/fedora-prime/releases).
+Copy and paste `setup-intel.sh` and `setup-nvidia.sh` into some directory on
+your PC (for example `/usr/bin` or `~/bin`).
 
 ### Usage
 
 To use intel run:
 
 ```sh
-sudo fedora-prime intel
+sudo ./setup-intel.sh
 ```
 
 To use nvidia run:
 
 ```sh
-sudo fedora-prime nvidia
+sudo ./setup-nvidia.sh
 ```
 
-After switching you must reboot.
+Now you must reboot.
 
 To check if it's working run:
 
@@ -46,21 +46,8 @@ To check if it's working run:
 glxinfo | grep 'OpenGL renderer'
 ```
 
-### Uninstallation
-
-Just remove the binary from `/usr/bin` and `/etc/modprobe.d/fedora-prime.conf`:
-
-```sh
-sudo rm /etc/modprobe.d/fedora-prime.conf /usr/bin/fedora-prime
-```
-
-### Building from source
-
-Cd into directory containing project and run:
-
-```sh
-cargo build
-```
+This will print which gpu is used. But even if it's intel, nvidia gpu may be
+still on. To check that use powertop.
 
 ## License
 
